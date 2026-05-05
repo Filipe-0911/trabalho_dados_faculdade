@@ -90,7 +90,6 @@ for ano in range(2012, 2023):
     empates.append(e)
     derrotas.append(d)
     
-
 x = np.arange(len(anos))
 width = 0.3
 
@@ -100,7 +99,6 @@ plt.bar(x - width, vitorias, width, label="Vitórias")
 plt.bar(x, empates, width, label="Empates")
 plt.bar(x + width, derrotas, width, label="Derrotas")
 
-# 🔥 aqui resolve o problema dos anos
 plt.xticks(x, anos)
 
 plt.xlabel("Ano")
