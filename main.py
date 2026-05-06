@@ -43,31 +43,43 @@ def cria_filtros(ano, time):
 def cria_regras(filtros):
     return {
 "vitorias": lambda p: (
-                (p["mandante"] == filtros["or"][0]["mandante"] and 
-                p["gols_mandante"] > p["gols_time_fora"])
+                    (
+                        p["mandante"] == filtros["or"][0]["mandante"] and 
+                        p["gols_mandante"] > p["gols_time_fora"]
+                    )
                 or
-                (p["time_fora"] == filtros["or"][1]["time_fora"] and 
-                p["gols_time_fora"] > p["gols_mandante"])
-                 ),
+                    (
+                        p["time_fora"] == filtros["or"][1]["time_fora"] and 
+                        p["gols_time_fora"] > p["gols_mandante"]    
+                    )
+            ),
         "empates": lambda p: (
-                (p["mandante"] == filtros["or"][0]["mandante"] 
-                and 
-                    p["gols_mandante"] == p["gols_time_fora"] )
+                    (
+                        p["mandante"] == filtros["or"][0]["mandante"] 
+                        and 
+                        p["gols_mandante"] == p["gols_time_fora"] 
+                    )
                 or 
-                    (p["time_fora"] == filtros["or"][1]["time_fora"] 
-                and 
-                    p["gols_time_fora"] == p["gols_mandante"])
+                    (
+                        p["time_fora"] == filtros["or"][1]["time_fora"] 
+                        and 
+                        p["gols_time_fora"] == p["gols_mandante"]
+                    )
         ),
 
-        "derrotas": lambda p: 
-                ((p["mandante"] == filtros["or"][0]["mandante"] 
-                and 
-                    p["gols_mandante"] < p["gols_time_fora"] )
+        "derrotas": lambda p: (
+                    (
+                        p["mandante"] == filtros["or"][0]["mandante"] 
+                        and 
+                        p["gols_mandante"] < p["gols_time_fora"] 
+                    )
                 or 
-                    (p["time_fora"] == filtros["or"][1]["time_fora"] 
-                    and 
-                    p["gols_time_fora"] < p["gols_mandante"])
-                    ),
+                    (
+                        p["time_fora"] == filtros["or"][1]["time_fora"] 
+                        and 
+                        p["gols_time_fora"] < p["gols_mandante"]
+                    )
+                ),
     }
 
 anos = []
