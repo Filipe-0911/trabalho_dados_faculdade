@@ -130,7 +130,7 @@ def ano_melhor_resultado_time(nome_time=TIME_BUSCADO):
 
     for ano, v, e, d in zip(dados["anos"], dados["vitorias"], dados["empates"], dados["derrotas"]):
         resultado = v * 3 + e  # Vitória vale 3 pontos, empate vale 1 ponto
-        if dados["nome_time"].find(nome_time):
+        if dados["nome_time"].find(nome_time) != -1:
             if resultado > melhor_resultado:
                 melhor_resultado = resultado
                 melhor_ano = ano
@@ -217,8 +217,8 @@ def atualizar_dashboard(event=None):
     pontuacao_por_ano = calcular_pontuacao_por_ano(dados)
     total_de_vitorias = sum(dados["vitorias"])
     ano_melhor_resultado_time_especifico = ano_melhor_resultado_time(time_selecionado)
-    janela.title(f"Dashboard Brasileirão 1ª Divisão 2012-2022 - {time_selecionado}")
-    app_nome.config(text=f"Dashboard Brasileirão 1ª Divisão 2012-2022 - {time_selecionado}")
+    janela.title(f"Dashboard Brasileirão 1ª Divisão 2007-2023 - {time_selecionado}")
+    app_nome.config(text=f"Dashboard Brasileirão 1ª Divisão 2007-2023 - {time_selecionado}")
 
     resultado_time = [
         t for t in resultado_maximo_todos_os_times(lista_json)
@@ -251,7 +251,7 @@ ano_melhor_resultado_time_especifico = ano_melhor_resultado_time(TIME_BUSCADO)
 total_de_vitorias = sum(dados["vitorias"])
 pontuacao_por_ano = calcular_pontuacao_por_ano(dados)
 
-TITULO = f"Dashboard Brasileirão 1ª Divisão 2012-2022 - {TIME_BUSCADO}"
+TITULO = f"Dashboard Brasileirão 1ª Divisão 2007-2023 - {TIME_BUSCADO}"
 BRANCO = "#efefef"
 CINZA = "#676767"
 PRETO = "#000000"
@@ -262,9 +262,9 @@ VERDE = "#33b88b"
 janela = Tk()
 janela.title(TITULO)
 janela.geometry("1200x700")
-janela.resizable(width=False, height=False)
+janela.resizable(width=True, height=False)
 
-frame_top = Frame(janela, width=1370, height=60, pady=0, padx=0, bg=BRANCO, relief="flat")
+frame_top = Frame(janela, width=1200, height=60, pady=0, padx=0, bg=BRANCO, relief="flat")
 frame_top.grid(row=0, column=0)
 combo_time = ttk.Combobox(frame_top, values=lista_times, state="readonly")
 combo_time.set(TIME_BUSCADO)
@@ -272,7 +272,7 @@ combo_time.place(x=900, y=20)
 
 combo_time.bind("<<ComboboxSelected>>", atualizar_dashboard)
 
-frame_quadro = Frame(janela, width=1370, height=700, pady=15, padx=7, relief="flat")
+frame_quadro = Frame(janela, width=1200, height=700, pady=15, padx=7, relief="flat")
 frame_quadro.grid(row=1, column=0, pady=6, sticky=NW)
 
 #config frametop
