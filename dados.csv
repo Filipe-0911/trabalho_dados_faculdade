@@ -4099,16 +4099,16 @@
 2022-10-06 19:00:00,"Palmeiras-SP","SP","Coritiba-PR","PR",4,0,2022,30
 2022-10-06 20:00:00,"America-MG","MG","Sao Paulo-SP","SP",1,2,2022,30
 2022-10-06 20:00:00,"Avai-SC","SC","Botafogo-RJ","RJ",1,2,2022,30
-2022-10-08 19:00:00,"Cuiaba-MT","MT","Flamengo-RJ","RJ",NA,NA,2022,31
-2022-10-08 21:00:00,"Corinthians-SP","SP","Atletico-PR","PR",NA,NA,2022,31
-2022-10-09 11:00:00,"Internacional-RS","RS","Goias-GO","GO",NA,NA,2022,31
-2022-10-09 16:00:00,"Sao Paulo-SP","SP","Botafogo-RJ","RJ",NA,NA,2022,31
-2022-10-09 16:00:00,"Fortaleza-CE","CE","Avai-SC","SC",NA,NA,2022,31
-2022-10-09 18:00:00,"Coritiba-PR","PR","Red Bull Bragantino-SP","SP",NA,NA,2022,31
-2022-10-09 18:00:00,"Fluminense-RJ","RJ","America-MG","MG",NA,NA,2022,31
-2022-10-09 18:00:00,"Atletico-MG","MG","Ceara-CE","CE",NA,NA,2022,31
-2022-10-10 18:30:00,"Atletico-GO","GO","Palmeiras-SP","SP",NA,NA,2022,31
-2022-10-10 20:00:00,"Santos-SP","SP","Juventude-RS","RS",NA,NA,2022,31
+2022-10-08 19:00:00,"Cuiaba-MT","MT","Flamengo-RJ","RJ",1,2,2022,31
+2022-10-08 21:00:00,"Corinthians-SP","SP","Atletico-PR","PR",2,1,2022,31
+2022-10-09 11:00:00,"Internacional-RS","RS","Goias-GO","GO",4,2,2022,31
+2022-10-09 16:00:00,"Sao Paulo-SP","SP","Botafogo-RJ","RJ",0,1,2022,31
+2022-10-09 16:00:00,"Fortaleza-CE","CE","Avai-SC","SC",2,0,2022,31
+2022-10-09 18:00:00,"Coritiba-PR","PR","Red Bull Bragantino-SP","SP",2,1,2022,31
+2022-10-09 18:00:00,"Fluminense-RJ","RJ","America-MG","MG",0,2,2022,31
+2022-10-09 18:00:00,"Atletico-MG","MG","Ceara-CE","CE",0,0,2022,31
+2022-10-10 18:30:00,"Atletico-GO","GO","Palmeiras-SP","SP",1,1,2022,31
+2022-10-10 20:00:00,"Santos-SP","SP","Juventude-RS","RS",0,0,2022,31
 2022-10-15 19:00:00,"Goias-GO","GO","Corinthians-SP","SP",NA,NA,2022,32
 2022-10-15 20:30:00,"America-MG","MG","Fortaleza-CE","CE",NA,NA,2022,32
 2022-10-15 20:30:00,"Flamengo-RJ","RJ","Atletico-MG","MG",NA,NA,2022,32
