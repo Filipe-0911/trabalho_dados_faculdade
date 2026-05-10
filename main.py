@@ -7,13 +7,19 @@ from tkinter import ttk
 from tkinter import *
 import json
 
-df = pd.read_csv("dados.csv")
-TIME_BUSCADO = "Flamengo-RJ"
+df = pd.read_csv("dados_2007-2023.csv")
+TIME_BUSCADO = "Flamengo"
 lista_json = df.to_dict(orient="records")
 lista_times = sorted(
     set(item["mandante"] for item in lista_json) |
     set(item["time_fora"] for item in lista_json)
 )
+
+tamanho_grafico_1_x = 8
+tamanho_grafico_1_y = 5.5
+
+tamanho_grafico_2_x = 4.5
+tamanho_grafico_2_y = 4.5
 
 def match_and(item, filtros):
     return all(item.get(k) == v for k, v in filtros.items())
@@ -94,7 +100,7 @@ def busca_jogos_por_nome_time(lista, nome_time):
     derrotas = []
     empates = []
 
-    for ano in range(2012, 2023):
+    for ano in range(2007, 2023):
         filtros = cria_filtros(ano, nome_time)
         regras_vitoria = cria_regras(filtros)["vitorias"]
         regras_empates = cria_regras(filtros)["empates"]
@@ -124,7 +130,7 @@ def ano_melhor_resultado_time(nome_time=TIME_BUSCADO):
 
     for ano, v, e, d in zip(dados["anos"], dados["vitorias"], dados["empates"], dados["derrotas"]):
         resultado = v * 3 + e  # Vitória vale 3 pontos, empate vale 1 ponto
-        if dados["nome_time"] == nome_time:
+        if dados["nome_time"].find(nome_time):
             if resultado > melhor_resultado:
                 melhor_resultado = resultado
                 melhor_ano = ano
@@ -236,6 +242,7 @@ def atualizar_dashboard(event=None):
 dados = busca_jogos_por_nome_time(lista_json, TIME_BUSCADO)
 ano_melhor_resultado = ano_melhor_resultado_time()
 resultado_maximo_times_lista = [time for time in resultado_maximo_todos_os_times(lista_json)]
+# print(resultado_maximo_times_lista)
 resultado_maximo_times = [time for time in resultado_maximo_times_lista if time["time"] == TIME_BUSCADO][0]
 
 # print(json.dumps(resultado_maximo_times_lista, indent=4))
@@ -254,7 +261,7 @@ VERDE = "#33b88b"
 
 janela = Tk()
 janela.title(TITULO)
-janela.geometry("1190x500")
+janela.geometry("1200x700")
 janela.resizable(width=False, height=False)
 
 frame_top = Frame(janela, width=1370, height=60, pady=0, padx=0, bg=BRANCO, relief="flat")
@@ -307,16 +314,16 @@ frame_grafico, _, _ = criar_card(
     "",
     "",
     tamanho_frame_x=800,
-    tamanho_frame_y=410,
+    tamanho_frame_y=610,
     pos_x=420,
     pos_y=0
 )
 
-fig = Figure(figsize=(8,3.5))
+fig = Figure(figsize=(tamanho_grafico_1_x, tamanho_grafico_1_y))
 ax = fig.add_subplot(111)
 
 x = np.arange(len(dados["anos"]))
-width = 0.25
+width = 0.20
 
 bars_vitorias = ax.bar(x - width, dados["vitorias"], width, label="Vitórias")
 bars_empates = ax.bar(x, dados["empates"], width, label="Empates")
@@ -368,10 +375,10 @@ frame_grafico2, _, _ = criar_card(
     pos_x=0,
     pos_y=110,
     tamanho_frame_x=410,
-    tamanho_frame_y=300
+    tamanho_frame_y=500
 )
 
-fig = Figure(figsize=(4, 2.5))
+fig = Figure(figsize=(tamanho_grafico_2_x, tamanho_grafico_2_y))
 ax = fig.add_subplot(111)
 
 # separar dados
@@ -408,12 +415,13 @@ canvas = FigureCanvasTkAgg(fig, master=frame_grafico2)
 canvas.draw()
 canvas.get_tk_widget().place(x=0, y=40)
 
+
 def recriar_grafico1():
-    fig = Figure(figsize=(8,3.5))
+    fig = Figure(figsize=(tamanho_grafico_1_x, tamanho_grafico_1_y))
     ax = fig.add_subplot(111)
 
     x = np.arange(len(dados["anos"]))
-    width = 0.25
+    width = 0.20
 
     bars_vitorias = ax.bar(x - width, dados["vitorias"], width, label="Vitórias")
     bars_empates = ax.bar(x, dados["empates"], width, label="Empates")
@@ -453,7 +461,7 @@ def recriar_grafico1():
     canvas.get_tk_widget().place(x=0, y=50)
 
 def recriar_grafico2():
-    fig = Figure(figsize=(4, 2.5))
+    fig = Figure(figsize=(tamanho_grafico_2_x, tamanho_grafico_2_y))
     ax = fig.add_subplot(111)
 
     # separar dados
