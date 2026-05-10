@@ -5,7 +5,6 @@ from matplotlib.figure import Figure
 import numpy as np
 from tkinter import ttk
 from tkinter import *
-import json
 
 df = pd.read_csv("dados_2007-2023.csv")
 TIME_BUSCADO = "Flamengo"
@@ -15,7 +14,7 @@ lista_times = sorted(
     set(item["time_fora"] for item in lista_json)
 )
 
-tamanho_grafico_1_x = 8
+tamanho_grafico_1_x = 7.5
 tamanho_grafico_1_y = 5.5
 
 tamanho_grafico_2_x = 4.5
@@ -100,7 +99,7 @@ def busca_jogos_por_nome_time(lista, nome_time):
     derrotas = []
     empates = []
 
-    for ano in range(2007, 2023):
+    for ano in range(2007, 2024):
         filtros = cria_filtros(ano, nome_time)
         regras_vitoria = cria_regras(filtros)["vitorias"]
         regras_empates = cria_regras(filtros)["empates"]
@@ -204,7 +203,97 @@ def criar_card(frame_pai, titulo, valor, melhor_ano, pos_x, pos_y, tamanho_frame
 
 def limpar_grafico(frame):
     for widget in frame.winfo_children():
-        widget.destroy()
+        if isinstance(widget, FigureCanvasTkAgg):
+            widget.destroy()
+
+def recriar_grafico1():
+    # garantir que anos sejam inteiros (evita 2010.5 etc)
+    anos = [int(ano) for ano in dados["anos"]]
+
+    fig = Figure(figsize=(tamanho_grafico_1_x, tamanho_grafico_1_y))
+    ax = fig.add_subplot(111)
+
+    x = np.arange(len(anos))
+    width = 0.25
+
+    # barras
+    bars_vitorias = ax.bar(x - width, dados["vitorias"], width, label="Vitórias")
+    bars_empates = ax.bar(x, dados["empates"], width, label="Empates")
+    bars_derrotas = ax.bar(x + width, dados["derrotas"], width, label="Derrotas")
+
+    # eixo X (CORRIGIDO)
+    ax.set_xticks(x)
+    ax.set_xticklabels(anos, rotation=45, ha='right', fontsize=8)
+
+    # títulos
+    ax.set_title("Desempenho por Ano")
+    ax.set_ylabel("Jogos")
+
+    # legenda
+    ax.legend()
+
+    # função para colocar valor acima da barra
+    def adicionar_rotulos(barras):
+        for barra in barras:
+            altura = barra.get_height()
+            ax.text(
+                barra.get_x() + barra.get_width() / 2,
+                altura + 0.3,  # pequeno espaço acima
+                f"{int(altura)}",
+                ha='center',
+                va='bottom',
+                fontsize=8
+            )
+
+    # aplicar nos 3 conjuntos
+    adicionar_rotulos(bars_vitorias)
+    adicionar_rotulos(bars_empates)
+    adicionar_rotulos(bars_derrotas)
+
+    # ajustar layout (ESSENCIAL)
+    fig.tight_layout()
+
+    # renderizar no Tkinter
+    canvas = FigureCanvasTkAgg(fig, master=frame_grafico)
+    canvas.draw()
+    canvas.get_tk_widget().place(x=0, y=50)
+
+def recriar_grafico2():
+    fig = Figure(figsize=(tamanho_grafico_2_x, tamanho_grafico_2_y))
+    ax = fig.add_subplot(111)
+
+    # separar dados
+    anos = [item["ano"] for item in pontuacao_por_ano]
+    pontuacoes = [item["pontuacao"] for item in pontuacao_por_ano]
+
+    y = np.arange(len(anos))
+
+    bars = ax.barh(y, pontuacoes)
+
+    # eixo Y com os anos (mesmo repetidos)
+    ax.set_yticks(y)
+    ax.set_yticklabels(anos)
+
+    ax.set_title("Pontuação por Ano")
+    ax.set_xlabel("Pontuação")
+
+    # valores ao lado das barras
+    for barra in bars:
+        largura = barra.get_width()
+        ax.text(
+            largura + 1,
+            barra.get_y() + barra.get_height() / 2,
+            f"{int(largura)}",
+            va='center',
+            fontsize=8
+        )
+
+    # opcional: inverter ordem
+    ax.invert_yaxis()
+
+    canvas = FigureCanvasTkAgg(fig, master=frame_grafico2)
+    canvas.draw()
+    canvas.get_tk_widget().place(x=0, y=40)
 
 def atualizar_dashboard(event=None):
     global dados, pontuacao_por_ano, total_de_vitorias
@@ -319,51 +408,7 @@ frame_grafico, _, _ = criar_card(
     pos_y=0
 )
 
-fig = Figure(figsize=(tamanho_grafico_1_x, tamanho_grafico_1_y))
-ax = fig.add_subplot(111)
-
-x = np.arange(len(dados["anos"]))
-width = 0.20
-
-bars_vitorias = ax.bar(x - width, dados["vitorias"], width, label="Vitórias")
-bars_empates = ax.bar(x, dados["empates"], width, label="Empates")
-bars_derrotas = ax.bar(x + width, dados["derrotas"], width, label="Derrotas")
-
-# eixo X
-ax.set_xticks(x)
-ax.set_xticklabels(dados["anos"])
-
-# títulos
-ax.set_title("Desempenho por Ano")
-ax.set_ylabel("Jogos")
-
-# legenda
-ax.legend()
-
-# função para colocar valor acima da barra
-def adicionar_rotulos(barras):
-    for barra in barras:
-        altura = barra.get_height()
-        ax.text(
-            barra.get_x() + barra.get_width() / 2,
-            altura,
-            f"{int(altura)}",
-            ha='center',
-            va='bottom',
-            fontsize=8
-        )
-
-# aplicar nos 3 conjuntos
-adicionar_rotulos(bars_vitorias)
-adicionar_rotulos(bars_empates)
-adicionar_rotulos(bars_derrotas)
-
-# inserir no tkinter
-canvas = FigureCanvasTkAgg(fig, master=frame_grafico)
-canvas.draw()
-canvas.get_tk_widget().place(x=0, y=50)
-
-
+recriar_grafico1()
 
 #grafico 2
 
@@ -378,123 +423,6 @@ frame_grafico2, _, _ = criar_card(
     tamanho_frame_y=500
 )
 
-fig = Figure(figsize=(tamanho_grafico_2_x, tamanho_grafico_2_y))
-ax = fig.add_subplot(111)
-
-# separar dados
-anos = [item["ano"] for item in pontuacao_por_ano]
-pontuacoes = [item["pontuacao"] for item in pontuacao_por_ano]
-
-y = np.arange(len(anos))
-
-bars = ax.barh(y, pontuacoes)
-
-# eixo Y com os anos (mesmo repetidos)
-ax.set_yticks(y)
-ax.set_yticklabels(anos)
-
-ax.set_title("Pontuação por Ano")
-ax.set_xlabel("Pontuação")
-
-# valores ao lado das barras
-for barra in bars:
-    largura = barra.get_width()
-    ax.text(
-        largura + 1,
-        barra.get_y() + barra.get_height() / 2,
-        f"{int(largura)}",
-        va='center',
-        fontsize=8
-    )
-
-# opcional: inverter ordem
-ax.invert_yaxis()
-
-# inserir no tkinter
-canvas = FigureCanvasTkAgg(fig, master=frame_grafico2)
-canvas.draw()
-canvas.get_tk_widget().place(x=0, y=40)
-
-
-def recriar_grafico1():
-    fig = Figure(figsize=(tamanho_grafico_1_x, tamanho_grafico_1_y))
-    ax = fig.add_subplot(111)
-
-    x = np.arange(len(dados["anos"]))
-    width = 0.20
-
-    bars_vitorias = ax.bar(x - width, dados["vitorias"], width, label="Vitórias")
-    bars_empates = ax.bar(x, dados["empates"], width, label="Empates")
-    bars_derrotas = ax.bar(x + width, dados["derrotas"], width, label="Derrotas")
-
-    # eixo X
-    ax.set_xticks(x)
-    ax.set_xticklabels(dados["anos"])
-
-    # títulos
-    ax.set_title("Desempenho por Ano")
-    ax.set_ylabel("Jogos")
-
-    # legenda
-    ax.legend()
-
-    # função para colocar valor acima da barra
-    def adicionar_rotulos(barras):
-        for barra in barras:
-            altura = barra.get_height()
-            ax.text(
-                barra.get_x() + barra.get_width() / 2,
-                altura,
-                f"{int(altura)}",
-                ha='center',
-                va='bottom',
-                fontsize=8
-            )
-
-    # aplicar nos 3 conjuntos
-    adicionar_rotulos(bars_vitorias)
-    adicionar_rotulos(bars_empates)
-    adicionar_rotulos(bars_derrotas)
-
-    canvas = FigureCanvasTkAgg(fig, master=frame_grafico)
-    canvas.draw()
-    canvas.get_tk_widget().place(x=0, y=50)
-
-def recriar_grafico2():
-    fig = Figure(figsize=(tamanho_grafico_2_x, tamanho_grafico_2_y))
-    ax = fig.add_subplot(111)
-
-    # separar dados
-    anos = [item["ano"] for item in pontuacao_por_ano]
-    pontuacoes = [item["pontuacao"] for item in pontuacao_por_ano]
-
-    y = np.arange(len(anos))
-
-    bars = ax.barh(y, pontuacoes)
-
-    # eixo Y com os anos (mesmo repetidos)
-    ax.set_yticks(y)
-    ax.set_yticklabels(anos)
-
-    ax.set_title("Pontuação por Ano")
-    ax.set_xlabel("Pontuação")
-
-    # valores ao lado das barras
-    for barra in bars:
-        largura = barra.get_width()
-        ax.text(
-            largura + 1,
-            barra.get_y() + barra.get_height() / 2,
-            f"{int(largura)}",
-            va='center',
-            fontsize=8
-        )
-
-    # opcional: inverter ordem
-    ax.invert_yaxis()
-
-    canvas = FigureCanvasTkAgg(fig, master=frame_grafico2)
-    canvas.draw()
-    canvas.get_tk_widget().place(x=0, y=40)
+recriar_grafico2()
 
 janela.mainloop()
