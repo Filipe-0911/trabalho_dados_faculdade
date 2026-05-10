@@ -5,6 +5,7 @@ from matplotlib.figure import Figure
 import numpy as np
 from tkinter import ttk
 from tkinter import *
+import json
 
 df = pd.read_csv("dados.csv")
 TIME_BUSCADO = "Flamengo-RJ"
@@ -23,7 +24,6 @@ def match_or(item, condicoes):
 def filtrar(lista, filtros=None, regras=None):
     filtros = filtros or {}
     regras = regras or []
-
     return [
         item for item in lista
         if (
@@ -137,14 +137,19 @@ def resultado_maximo_todos_os_times(lista):
     for i, time in enumerate(lista_times):
         dados_time = busca_jogos_por_nome_time(lista, time)
         resultado_time = sum(dados_time["vitorias"]) * 3 + sum(dados_time["empates"])
-        resultados.append({"time": time, "resultado": resultado_time})
+        resultados.append({"time": time, "resultado": resultado_time, "vitorias": sum(dados_time["vitorias"])})
 
-    return list(map(lambda x, i: {**x, "ranking_geral": i + 1}, sorted(resultados, key=lambda x: x["resultado"], reverse=True), range(len(resultados))))
+    return list(map(lambda x, i: {**x, "ranking_geral": i + 1}, 
+                    sorted(
+                        resultados,
+                        key=lambda x: (x["resultado"], x["vitorias"]),
+                        reverse=True
+                    )
+                    , range(len(resultados))))
 
 def calcular_pontuacao_por_ano(dados):
     pontuacao_por_ano = []
     
-
     for index, ano in enumerate(dados["anos"]):
         obj = {
                 "ano": ano,
@@ -214,13 +219,13 @@ def atualizar_dashboard(event=None):
         if t["time"] == time_selecionado
     ][0]
 
-    # ✅ atualizar textos corretamente
+    # atualizar textos corretamente
     label_vitorias.config(text=total_de_vitorias)
     label_pontos.config(text=resultado_time["resultado"])
     label_ano1.config(text=f"Melhor Ano: {ano_melhor_resultado_time_especifico['melhor_ano']}")
     label_ano2.config(text=f"Ranking Geral: {resultado_time['ranking_geral']}º")
 
-    # ✅ limpar e recriar gráficos
+    # limpar e recriar gráficos
     limpar_grafico(frame_grafico)
     limpar_grafico(frame_grafico2)
 
@@ -230,7 +235,11 @@ def atualizar_dashboard(event=None):
 
 dados = busca_jogos_por_nome_time(lista_json, TIME_BUSCADO)
 ano_melhor_resultado = ano_melhor_resultado_time()
-resultado_maximo_times = [time for time in resultado_maximo_todos_os_times(lista_json) if time["time"] == TIME_BUSCADO][0]
+resultado_maximo_times_lista = [time for time in resultado_maximo_todos_os_times(lista_json)]
+resultado_maximo_times = [time for time in resultado_maximo_times_lista if time["time"] == TIME_BUSCADO][0]
+
+# print(json.dumps(resultado_maximo_times_lista, indent=4))
+
 ano_melhor_resultado_time_especifico = ano_melhor_resultado_time(TIME_BUSCADO)
 total_de_vitorias = sum(dados["vitorias"])
 pontuacao_por_ano = calcular_pontuacao_por_ano(dados)
