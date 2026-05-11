@@ -14,11 +14,11 @@ lista_times = sorted(
     set(item["time_fora"] for item in lista_json)
 )
 
-tamanho_grafico_1_x = 7.5
-tamanho_grafico_1_y = 5.5
+TAMANHO_GRAFICO_1_X = 7.5
+TAMANHO_GRAFICO_1_Y = 5.5
 
-tamanho_grafico_2_x = 4.5
-tamanho_grafico_2_y = 4.5
+TAMANHO_GRAFICO_2_X = 4.5
+TAMANHO_GRAFICO_2_Y = 4.5
 
 def match_and(item, filtros):
     return all(item.get(k) == v for k, v in filtros.items())
@@ -210,7 +210,7 @@ def recriar_grafico1():
     # garantir que anos sejam inteiros (evita 2010.5 etc)
     anos = [int(ano) for ano in dados["anos"]]
 
-    fig = Figure(figsize=(tamanho_grafico_1_x, tamanho_grafico_1_y))
+    fig = Figure(figsize=(TAMANHO_GRAFICO_1_X, TAMANHO_GRAFICO_1_Y))
     ax = fig.add_subplot(111)
 
     x = np.arange(len(anos))
@@ -259,7 +259,7 @@ def recriar_grafico1():
     canvas.get_tk_widget().place(x=0, y=50)
 
 def recriar_grafico2():
-    fig = Figure(figsize=(tamanho_grafico_2_x, tamanho_grafico_2_y))
+    fig = Figure(figsize=(TAMANHO_GRAFICO_2_X, TAMANHO_GRAFICO_2_Y))
     ax = fig.add_subplot(111)
 
     # separar dados
