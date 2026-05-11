@@ -5,6 +5,7 @@ from matplotlib.figure import Figure
 import numpy as np
 from tkinter import ttk
 from tkinter import *
+import statistics
 
 df = pd.read_csv("dados_2007-2023.csv")
 TIME_BUSCADO = "Flamengo"
@@ -19,6 +20,9 @@ TAMANHO_GRAFICO_1_Y = 5.5
 
 TAMANHO_GRAFICO_2_X = 4.5
 TAMANHO_GRAFICO_2_Y = 4.5
+
+TAMANHO_GRAFICO_3_X = 6.8
+TAMANHO_GRAFICO_3_Y = 5
 
 def match_and(item, filtros):
     return all(item.get(k) == v for k, v in filtros.items())
@@ -227,7 +231,7 @@ def recriar_grafico1():
 
     # títulos
     ax.set_title("Desempenho por Ano")
-    ax.set_ylabel("Jogos")
+    ax.set_ylabel("Pontos")
 
     # legenda
     ax.legend()
@@ -295,6 +299,46 @@ def recriar_grafico2():
     canvas.draw()
     canvas.get_tk_widget().place(x=0, y=40)
 
+def recriar_grafico3():
+    dados = calcular_variancia_e_desvio_padrao_dados_times(lista_json)
+
+    nomes = [t["nome_time"] for t in dados]
+    variancias = [t["variancia"] for t in dados]
+    desvios = [t["desvio_padrao"] for t in dados]
+
+    media_variancia = np.mean(variancias)
+    media_desvio = np.mean(desvios)
+
+    fig = Figure(figsize=(TAMANHO_GRAFICO_3_X, TAMANHO_GRAFICO_3_Y))
+    ax = fig.add_subplot(111)
+
+    # pontos
+    ax.scatter(desvios, variancias)
+
+    # nomes (opcional - pode poluir)
+    for i, nome in enumerate(nomes):
+        ax.text(desvios[i], variancias[i], nome, fontsize=7)
+
+    # linhas de média (CRUCIAL)
+    ax.axhline(media_variancia, linestyle='--')
+    ax.axvline(media_desvio, linestyle='--')
+
+    ax.set_xlabel("Desvio Padrão")
+    ax.set_ylabel("Variância")
+    ax.set_title("Consistência dos Times")
+
+    fig.tight_layout()
+
+    canvas = FigureCanvasTkAgg(fig, master=frame_grafico3)
+    canvas.draw()
+    canvas.get_tk_widget().place(x=0, y=100)
+
+def calcular_variancia_dados(dados):
+    return np.var(dados)
+
+def calcular_desvio_padrao_dados(dados):
+    return np.std(dados)
+
 def atualizar_dashboard(event=None):
     global dados, pontuacao_por_ano, total_de_vitorias
     global label_vitorias, label_pontos
@@ -323,25 +367,95 @@ def atualizar_dashboard(event=None):
     # limpar e recriar gráficos
     limpar_grafico(frame_grafico)
     limpar_grafico(frame_grafico2)
+    limpar_grafico(frame_grafico3)
 
     recriar_grafico1()
     recriar_grafico2()
+    recriar_grafico3()
 
 
 dados = busca_jogos_por_nome_time(lista_json, TIME_BUSCADO)
 ano_melhor_resultado = ano_melhor_resultado_time()
 resultado_maximo_times_lista = [time for time in resultado_maximo_todos_os_times(lista_json)]
-# print(resultado_maximo_times_lista)
+
 resultado_maximo_times = [time for time in resultado_maximo_times_lista if time["time"] == TIME_BUSCADO][0]
 
-# print(json.dumps(resultado_maximo_times_lista, indent=4))
+
 
 ano_melhor_resultado_time_especifico = ano_melhor_resultado_time(TIME_BUSCADO)
 total_de_vitorias = sum(dados["vitorias"])
 pontuacao_por_ano = calcular_pontuacao_por_ano(dados)
 
+def transformar_dados(lista):
+    df = pd.DataFrame(lista)
+
+    # Criar dois DataFrames: mandante e visitante
+    mandante = df[['temporada', 'mandante', 'gols_mandante', 'gols_time_fora']].copy()
+    mandante.columns = ['ano', 'time', 'gols_pro', 'gols_contra']
+
+    visitante = df[['temporada', 'time_fora', 'gols_time_fora', 'gols_mandante']].copy()
+    visitante.columns = ['ano', 'time', 'gols_pro', 'gols_contra']
+
+    # Juntar tudo
+    jogos = pd.concat([mandante, visitante], ignore_index=True)
+
+    # Criar resultado
+    def resultado(row):
+        if row['gols_pro'] > row['gols_contra']:
+            return 'vitoria'
+        elif row['gols_pro'] < row['gols_contra']:
+            return 'derrota'
+        else:
+            return 'empate'
+
+    jogos['resultado'] = jogos.apply(resultado, axis=1)
+
+    # Agrupar
+    agrupado = jogos.groupby(['time', 'ano', 'resultado']).size().unstack(fill_value=0)
+
+    # Garantir colunas
+    for col in ['vitoria', 'empate', 'derrota']:
+        if col not in agrupado:
+            agrupado[col] = 0
+
+    agrupado['total_jogos'] = agrupado.sum(axis=1)
+
+    # Montar estrutura final
+    resultado_final = []
+
+    for time, grupo in agrupado.groupby(level=0):
+        grupo = grupo.reset_index(level=0, drop=True).sort_index()
+
+        resultado_final.append({
+            'nome_time': time,
+            'anos': grupo.index.tolist(),
+            'vitorias': grupo['vitoria'].tolist(),
+            'empates': grupo['empate'].tolist(),
+            'derrotas': grupo['derrota'].tolist(),
+            'total_jogos': grupo['total_jogos'].tolist()
+        })
+
+    return resultado_final
+
+def calcular_variancia_e_desvio_padrao_dados_times(lista):
+    dados = list(map(lambda x: {"nome_time": x["nome_time"], "pontos": (x["vitorias"] * 3) + x["empates"]}, transformar_dados(lista)))
+    dados = list(
+        map(
+            lambda x : {
+                "nome_time" : x["nome_time"],
+                "variancia": float(calcular_variancia_dados(x["pontos"])),
+                "desvio_padrao": float(calcular_desvio_padrao_dados(x["pontos"]))
+                }
+             ,
+             dados
+        )
+    )
+    return dados
+
+# Variáveis de gráfico
+
 TITULO = f"Dashboard Brasileirão 1ª Divisão 2007-2023 - {TIME_BUSCADO}"
-BRANCO = "#efefef"
+BRANCO = "#ffffff"
 CINZA = "#676767"
 PRETO = "#000000"
 AZUL = "#3780c9"
@@ -350,10 +464,10 @@ VERDE = "#33b88b"
 
 janela = Tk()
 janela.title(TITULO)
-janela.geometry("1200x700")
-janela.resizable(width=True, height=False)
+janela.geometry("1920x700")
+janela.resizable(width=True, height=True)
 
-frame_top = Frame(janela, width=1200, height=60, pady=0, padx=0, bg=BRANCO, relief="flat")
+frame_top = Frame(janela, width=1920, height=60, pady=0, padx=0, bg=BRANCO, relief="flat")
 frame_top.grid(row=0, column=0)
 combo_time = ttk.Combobox(frame_top, values=lista_times, state="readonly")
 combo_time.set(TIME_BUSCADO)
@@ -361,14 +475,12 @@ combo_time.place(x=900, y=20)
 
 combo_time.bind("<<ComboboxSelected>>", atualizar_dashboard)
 
-frame_quadro = Frame(janela, width=1200, height=700, pady=15, padx=7, relief="flat")
+frame_quadro = Frame(janela, width=1920, height=700, pady=15, padx=7, relief="flat")
 frame_quadro.grid(row=1, column=0, pady=6, sticky=NW)
 
 #config frametop
 app_nome = Label(frame_top, text=TITULO, height=2, padx=5, pady=5, font=("Ivy 14 bold", 20), bg=BRANCO, fg=PRETO, relief='flat', anchor=N)
 app_nome.place(x=0, y=5)
-
-
 
 #configurando framequadro
 # Total de vitórias
@@ -423,6 +535,18 @@ frame_grafico2, _, _ = criar_card(
     tamanho_frame_y=500
 )
 
+frame_grafico3, _, _ = criar_card(
+    frame_quadro,
+    "Variância e Desvio padrão das pontuações",
+    "Consistência dos times",
+    "",
+    pos_x=1230,
+    pos_y=0,
+    tamanho_frame_x=700,
+    tamanho_frame_y=610
+)
+
 recriar_grafico2()
+recriar_grafico3()
 
 janela.mainloop()
